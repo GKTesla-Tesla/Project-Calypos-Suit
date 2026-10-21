@@ -23,7 +23,7 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           node build-web.mjs
-      - uses: android-actions/setup-android@v3
+      # The ubuntu runner ships the Android SDK (ANDROID_HOME); Gradle fetches platform 35 if missing.
       - name: Restore signing key
         env:
           KEYSTORE_BASE64: ${{ secrets.CALYPSO_KEYSTORE_BASE64 }}
