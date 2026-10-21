@@ -1,0 +1,1085 @@
+<title>Calypso Asset</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: slim top bar with drawer nav; dashboard = tile row, filter bar, ledger table */
+:root{
+  --bg:#f3f5f2; --surface:#ffffff; --surface-2:#eaeee8; --line:#d6ddd3;
+  --fg:#17211c; --muted:#5d6b63; --accent:#1d6b55; --accent-fg:#ffffff; --accent-soft:#dcebe4;
+  --warn:#a3620a; --warn-soft:#f6e9d3; --bad:#b03a2e; --bad-soft:#f6dedb; --good:#2f7a3d; --good-soft:#dff0e1;
+  --info:#2b5a8a; --info-soft:#dde8f4; --overlay:rgba(14,22,18,.45); --shadow:0 12px 40px rgba(16,30,24,.18);
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Figtree", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101613; --surface:#18201c; --surface-2:#202a25; --line:#2e3a34;
+  --fg:#e5ece8; --muted:#97a69e; --accent:#5cbf9c; --accent-fg:#0d1813; --accent-soft:#1f3a30;
+  --warn:#e3a650; --warn-soft:#3a2c17; --bad:#ec8576; --bad-soft:#3d211d; --good:#7fcf8c; --good-soft:#1e3522;
+  --info:#8db8e6; --info-soft:#1c2c3d; --overlay:rgba(0,0,0,.6); --shadow:0 12px 40px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101613; --surface:#18201c; --surface-2:#202a25; --line:#2e3a34;
+  --fg:#e5ece8; --muted:#97a69e; --accent:#5cbf9c; --accent-fg:#0d1813; --accent-soft:#1f3a30;
+  --warn:#e3a650; --warn-soft:#3a2c17; --bad:#ec8576; --bad-soft:#3d211d; --good:#7fcf8c; --good-soft:#1e3522;
+  --info:#8db8e6; --info-soft:#1c2c3d; --overlay:rgba(0,0,0,.6); --shadow:0 12px 40px rgba(0,0,0,.5); color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;
+  display:flex;align-items:center;gap:12px}
+.brand{display:flex;flex-direction:column;line-height:1.1;min-width:0}
+.brand b{font-family:var(--f-display);font-size:18px;letter-spacing:-.01em}
+.brand span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.spacer{flex:1}
+.iconbtn{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:8px;border:1px solid transparent;background:transparent}
+.iconbtn:hover{background:var(--surface-2)}
+.iconbtn svg{width:20px;height:20px}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:8px;padding:9px 16px;border:1px solid var(--line);background:var(--surface);font-weight:600;white-space:nowrap}
+.btn:hover{background:var(--surface-2)}
+.btn svg{width:18px;height:18px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:var(--surface)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.small{padding:6px 12px;font-size:14px}
+
+.drawer-bg{position:fixed;inset:0;background:var(--overlay);z-index:40}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:min(280px,85vw);z-index:41;background:var(--surface);border-right:1px solid var(--line);
+  padding:calc(16px + env(safe-area-inset-top,0px)) 12px calc(16px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:4px;box-shadow:var(--shadow);transform:translateX(-102%);transition:transform .2s ease}
+.drawer.open{transform:none}
+.drawer h2{font-family:var(--f-display);font-size:20px;margin:4px 8px 16px}
+.nav{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:8px;border:0;background:transparent;text-align:left;font-weight:500;width:100%}
+.nav svg{width:20px;height:20px;color:var(--muted)}
+.nav:hover{background:var(--surface-2)}
+.nav[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.nav[aria-current="page"] svg{color:var(--accent)}
+.nav small{display:block;color:var(--muted);font-size:12px;font-weight:400}
+@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
+
+main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px;max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.page-head{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.page-head h1{font-family:var(--f-display);font-size:26px;margin:0;letter-spacing:-.015em;text-wrap:balance}
+.page-head p{margin:2px 0 0;color:var(--muted)}
+.banner{padding:12px 14px;border-radius:8px;background:var(--warn-soft);color:var(--fg);border:1px solid var(--line)}
+
+.tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:560px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.t-total{grid-column:1/-1}}
+.tile{position:relative;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 14px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile:hover{border-color:var(--muted)}
+.tile[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.tile .lbl{padding-right:14px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.tile .num{font-family:var(--f-display);font-size:34px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.tile .sub{font-size:12.5px;color:var(--muted)}
+.tile .dot{position:absolute;top:14px;right:14px;width:9px;height:9px;border-radius:50%}
+.t-total .dot{background:var(--accent)} .t-month .dot{background:var(--info)} .t-year .dot{background:var(--good)}
+.t-red .dot{background:var(--muted)} .t-missed .dot{background:var(--bad)}
+.t-missed .num.hot{color:var(--bad)}
+
+.filters{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end}
+@media (max-width:640px){.filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.filters .actions{display:flex;gap:8px}
+.filters .actions .btn{flex:1;justify-content:center}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label,.field .lab{font-size:12.5px;font-weight:600;color:var(--muted)}
+.field label .req{color:var(--bad)}
+.input,select.input{width:100%;min-width:0;height:40px;border-radius:7px;border:1px solid var(--line);background:var(--surface);padding:0 10px}
+.input:disabled{background:var(--surface-2);color:var(--muted)}
+.input.invalid{border-color:var(--bad)}
+.err{color:var(--bad);font-size:12.5px;min-height:0}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13.5px;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 6px 3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:600;border:0}
+.chip svg{width:14px;height:14px}
+
+.tablewrap{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:820px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;background:var(--surface-2);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+td.id{font-family:var(--f-mono);color:var(--muted);width:64px}
+td.tag{font-family:var(--f-mono);font-weight:500}
+.mat{display:flex;flex-direction:column;gap:3px;white-space:nowrap}
+.pill{display:inline-block;width:max-content;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;letter-spacing:.02em}
+.p-missed{background:var(--bad-soft);color:var(--bad)} .p-month{background:var(--info-soft);color:var(--info)}
+.p-red{background:var(--surface-2);color:var(--muted)} .p-up{background:var(--good-soft);color:var(--good)}
+.p-none{background:var(--surface-2);color:var(--muted)}
+.opts{display:flex;gap:2px;white-space:nowrap}
+.opts .iconbtn{width:34px;height:34px;color:var(--muted)}
+.opts .iconbtn:hover{color:var(--fg)}
+.opts .iconbtn.del:hover{color:var(--bad);background:var(--bad-soft)}
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--fg);font-size:16px;margin-bottom:4px}
+.pager{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.pager .pg{display:flex;gap:6px;align-items:center}
+
+.overlay{position:fixed;inset:0;background:var(--overlay);z-index:50;display:grid;place-items:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.modal{background:var(--surface);border-radius:12px;box-shadow:var(--shadow);width:min(680px,100%);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;border:1px solid var(--line)}
+.modal.narrow{width:min(440px,100%)}
+.modal header{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.modal header h3{margin:0;font-family:var(--f-display);font-size:20px;flex:1;min-width:0}
+.modal .body{padding:18px;overflow:auto;min-height:0;display:flex;flex-direction:column;gap:14px}
+.modal footer{display:flex;gap:8px;justify-content:flex-end;padding:14px 18px;border-top:1px solid var(--line);flex-wrap:wrap}
+.idlabel{display:flex;align-items:baseline;gap:10px;padding:10px 12px;border-radius:8px;background:var(--surface-2)}
+.idlabel span{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.idlabel b{font-family:var(--f-mono);font-size:18px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:560px){.formgrid{grid-template-columns:1fr}}
+.full{grid-column:1/-1}
+.check{display:flex;align-items:center;gap:8px;font-weight:500}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.hint{font-size:12.5px;color:var(--muted)}
+.hint a,.linkbtn{color:var(--accent);background:none;border:0;padding:0;font-weight:600;text-decoration:underline;cursor:pointer}
+dl.view{display:grid;grid-template-columns:minmax(120px,40%) 1fr;gap:0;margin:0}
+dl.view dt,dl.view dd{padding:9px 0;border-bottom:1px solid var(--line);margin:0}
+dl.view dt{color:var(--muted);font-size:13.5px}
+dl.view dd{font-weight:500;overflow-wrap:anywhere}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;text-align:left;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card:hover{border-color:var(--accent)}
+.card h3{margin:0;font-size:16px;font-weight:600;display:flex;justify-content:space-between;gap:8px}
+.card h3 .mono{color:var(--muted);font-weight:400;font-size:14px}
+.card p{margin:0;color:var(--muted);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vlist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px}
+.vrow{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;border-bottom:1px solid var(--line);min-height:46px}
+.vrow:last-child{border-bottom:0}
+.vrow .name{flex:1;min-width:0;overflow-wrap:anywhere}
+.vrow .use{font-size:12px;color:var(--muted);white-space:nowrap}
+.vrow .input{height:34px}
+.addrow{display:flex;gap:8px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.panel h2{margin:0;font-size:17px;display:flex;gap:10px;align-items:center}
+.step{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-family:var(--f-mono);font-size:13px;font-weight:600}
+.panel p{margin:0;color:var(--muted)}
+.cols{display:flex;flex-wrap:wrap;gap:6px}
+.cols code{font-family:var(--f-mono);font-size:12.5px;padding:3px 8px;border-radius:6px;background:var(--surface-2)}
+.cols code.req{background:var(--accent-soft);color:var(--accent)}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:26px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:8px;align-items:center}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.summary{display:flex;gap:16px;flex-wrap:wrap;font-weight:600}
+.summary .ok{color:var(--good)} .summary .no{color:var(--bad)}
+.progress{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0}
+td.errs{color:var(--bad);font-size:13px;min-width:220px}
+td.okc{color:var(--good);font-weight:600;font-size:13px}
+
+/* ---------- motion + touch ---------- */
+html{-webkit-text-size-adjust:100%}
+button,.tile,.card,.nav,a{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.tile,.card,.acard,.btn{transition:transform .12s ease, background-color .12s ease}
+.tile:active,.card:active,.acard:active,.btn:active{transform:scale(.97)}
+.drawer-bg{transition:opacity .25s ease}
+.drawer{transition:transform .32s cubic-bezier(.32,.72,0,1)}
+.overlay{animation:fadeIn .22s ease both}
+.modal{animation:popIn .26s cubic-bezier(.32,.72,0,1) both}
+.overlay.closing{animation:fadeOut .2s ease both}
+.overlay.closing .modal{animation:popOut .2s ease both}
+@keyframes fadeIn{from{opacity:0}} @keyframes fadeOut{to{opacity:0}}
+@keyframes popIn{from{opacity:0;transform:scale(.96)}} @keyframes popOut{to{opacity:0;transform:scale(.97)}}
+.modal .body,.vlist,.tablewrap{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.grab{display:none}
+.mbar,.fhead,.fbackdrop,.cardlist{display:none}
+html.locked,html.locked body{overflow:hidden}
+.modal.settled{animation:none}
+
+/* cards that replace the table on phones */
+.cardlist{list-style:none;margin:0;padding:0;flex-direction:column;gap:10px}
+.acard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 14px 6px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.acard .top{display:flex;align-items:center;gap:10px;min-width:0}
+.acard .id{font-family:var(--f-mono);color:var(--muted);font-size:13px}
+.acard .tg{font-family:var(--f-mono);font-weight:600;font-size:16px;flex:1;min-width:0;overflow-wrap:anywhere}
+.acard .meta{color:var(--muted);font-size:14px;overflow-wrap:anywhere}
+.acard .meta b{color:var(--fg);font-weight:600}
+.acard .bot{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);margin-top:6px;padding-top:4px}
+.acard .bot .when{flex:1;font-family:var(--f-mono);font-size:13.5px}
+.acard .opts .iconbtn{width:44px;height:44px}
+
+@media (max-width:700px){
+  body{font-size:16px}
+  .input,select.input{height:46px;font-size:16px;border-radius:10px}
+  .btn{min-height:44px;border-radius:10px}
+  .iconbtn{width:44px;height:44px}
+  .page-head h1{font-size:28px}
+  main{gap:16px;padding-block:14px calc(32px + env(safe-area-inset-bottom,0px))}
+  .topbar .btn.primary{padding:9px 14px}
+
+  /* tiles: swipeable row with snap */
+  .tiles{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;scrollbar-width:none;
+    margin-left:calc(-1 * max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1 * max(16px,env(safe-area-inset-right,0px)));
+    padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+    scroll-padding-left:max(16px,env(safe-area-inset-left,0px));padding-block:2px;overscroll-behavior-x:contain}
+  .tiles::-webkit-scrollbar{display:none}
+  .tile{flex:0 0 42%;scroll-snap-align:start;border-radius:14px}
+  .tile .num{font-size:32px}
+
+  /* filters: bar + bottom sheet */
+  .mbar{display:flex;align-items:center;gap:12px}
+  .mbar .count{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:var(--accent);color:var(--accent-fg);font-size:12px}
+  .mbar .count[hidden]{display:none}
+  .fbackdrop{display:block;position:fixed;inset:0;background:var(--overlay);z-index:44;opacity:0;pointer-events:none;transition:opacity .25s ease}
+  .fbackdrop.show{opacity:1;pointer-events:auto}
+  .filters{position:fixed;left:0;right:0;bottom:0;z-index:45;border-radius:16px 16px 0 0;border:0;box-shadow:var(--shadow);
+    grid-template-columns:1fr 1fr;max-height:calc(100vh - env(safe-area-inset-top,0px) - 24px);max-height:calc(100dvh - env(safe-area-inset-top,0px) - 24px);overflow-y:auto;overscroll-behavior:contain;
+    padding:0 max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+    transform:translateY(105%);visibility:hidden;transition:transform .34s cubic-bezier(.32,.72,0,1),visibility 0s linear .34s}
+  .filters.open{transform:none;visibility:visible;transition:transform .34s cubic-bezier(.32,.72,0,1)}
+  .filters .field:nth-child(4){grid-column:1/-1}
+  .fhead{display:flex;align-items:center;gap:8px;grid-column:1/-1;position:sticky;top:0;background:var(--surface);padding:18px 0 6px;z-index:1}
+  .fhead h3{flex:1;margin:0;font-family:var(--f-display);font-size:20px}
+  .filters .actions{grid-column:1/-1;position:sticky;bottom:calc(-16px - env(safe-area-inset-bottom,0px));background:var(--surface);padding-block:10px calc(4px + env(safe-area-inset-bottom,0px))}
+  .filters .actions #searchBtn{order:2;flex:2}
+
+  /* list: cards instead of table */
+  .tablewrap.list{background:transparent;border:0;overflow:visible}
+  .tablewrap.list table{display:none}
+  .cardlist{display:flex}
+  .tablewrap.list .empty{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+  .pager{justify-content:center;text-align:center}
+  .pager .pg{width:100%}
+  .pager .pg .btn{flex:1;justify-content:center}
+
+  /* pop-ups become bottom sheets */
+  .grab{display:block;position:absolute;top:7px;left:50%;width:38px;height:5px;margin-left:-19px;border-radius:99px;background:var(--line)}
+  .fhead .grab{top:7px}
+  .filters .fhead{position:sticky}
+  .overlay{place-items:end stretch;padding:env(safe-area-inset-top,0px) 0 0}
+  .modal,.modal.narrow{position:relative;width:100%;border-radius:16px 16px 0 0;border:0;max-height:calc(100vh - env(safe-area-inset-top,0px) - 12px);max-height:calc(100dvh - env(safe-area-inset-top,0px) - 12px);animation:sheetIn .38s cubic-bezier(.32,.72,0,1) both}
+  .overlay.closing .modal{animation:sheetOut .26s cubic-bezier(.32,.72,0,1) both}
+  .modal header{padding:20px max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px));touch-action:none}
+  .modal .body{padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px))}
+  .modal footer{padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+  .modal footer .btn{flex:1;justify-content:center}
+  .modal.dragging{animation:none;transition:none}
+  .formgrid{grid-template-columns:1fr}
+  .formgrid .field > .lab{display:none}
+  .formgrid .check{height:auto!important;min-height:44px}
+  dl.view{grid-template-columns:minmax(110px,38%) 1fr}
+  .vrow{min-height:52px}
+  .addrow .btn{flex:none}
+  .drop{padding:22px 14px}
+  .toast{bottom:calc(16px + env(safe-area-inset-bottom,0px));border-radius:12px}
+}
+@keyframes sheetIn{from{transform:translateY(100%)}} @keyframes sheetOut{to{transform:translateY(100%)}}
+@media (prefers-reduced-motion:reduce){
+  .overlay,.modal,.overlay.closing,.overlay.closing .modal{animation-duration:.01ms!important}
+  .filters,.filters.open,.drawer,.fbackdrop{transition:none!important}
+}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:500;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/><path d="M14.5 5.5l3 3"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-dash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></symbol>
+</svg>
+
+<header class="topbar">
+  <button class="iconbtn" id="menuBtn" aria-label="Open menu" aria-controls="drawer" aria-expanded="false"><svg><use href="#i-menu"/></svg></button>
+  <div class="brand"><b>Calypso Asset</b><span id="crumb">Dashboard</span></div>
+  <div class="spacer"></div>
+  <button class="btn primary" id="addBtn"><svg><use href="#i-plus"/></svg>Add asset</button>
+</header>
+
+<div class="drawer-bg" id="drawerBg" hidden></div>
+<nav class="drawer" id="drawer" aria-label="Main menu">
+  <h2>Calypso Asset</h2>
+  <button class="nav" data-view="dashboard"><svg><use href="#i-dash"/></svg><span>Dashboard<small>Tiles, search and records</small></span></button>
+  <button class="nav" data-view="utility"><svg><use href="#i-sliders"/></svg><span>Utility<small>Manage dropdown values</small></span></button>
+  <button class="nav" data-view="migration"><svg><use href="#i-upload"/></svg><span>Migration<small>Import records from Excel</small></span></button>
+</nav>
+
+<main id="main">
+  <div class="banner" id="dbBanner" hidden></div>
+
+  <!-- DASHBOARD -->
+  <section id="v-dashboard" style="display:flex;flex-direction:column;gap:20px">
+    <div class="tiles" id="tiles">
+      <button class="tile t-total" data-quick="all" aria-pressed="true"><i class="dot"></i><span class="lbl">Total Assets</span><span class="num" id="n-total">–</span><span class="sub">All entries recorded</span></button>
+      <button class="tile t-month" data-quick="month" aria-pressed="false"><i class="dot"></i><span class="lbl">Maturing this Month</span><span class="num" id="n-month">–</span><span class="sub" id="s-month"></span></button>
+      <button class="tile t-year" data-quick="year" aria-pressed="false"><i class="dot"></i><span class="lbl">Maturing this Year</span><span class="num" id="n-year">–</span><span class="sub" id="s-year"></span></button>
+      <button class="tile t-red" data-quick="redeemed" aria-pressed="false"><i class="dot"></i><span class="lbl">Redeemed</span><span class="num" id="n-red">–</span><span class="sub">Redeemed and closed</span></button>
+      <button class="tile t-missed" data-quick="missed" aria-pressed="false"><i class="dot"></i><span class="lbl">Missed</span><span class="num" id="n-missed">–</span><span class="sub">Matured earlier, still open</span></button>
+    </div>
+
+    <div class="mbar">
+      <button type="button" class="btn" id="fBtn" aria-controls="filterForm" aria-expanded="false"><svg><use href="#i-sliders"/></svg>Filters<span class="count" id="fCount" hidden></span></button>
+      <span class="hint" id="mCount"></span>
+    </div>
+    <div class="fbackdrop" id="fBg"></div>
+    <form class="filters" id="filterForm">
+      <div class="fhead"><span class="grab" aria-hidden="true"></span><h3>Filters</h3><button type="button" class="iconbtn" id="fClose" aria-label="Close filters"><svg><use href="#i-x"/></svg></button></div>
+      <div class="field"><label for="f-owner">Investment By</label><select class="input" id="f-owner"></select></div>
+      <div class="field"><label for="f-assetType">Asset Type</label><select class="input" id="f-assetType"></select></div>
+      <div class="field"><label for="f-tag">TAG</label><input class="input" id="f-tag" placeholder="Any tag" autocomplete="off"></div>
+      <div class="field"><label for="f-month">Maturity Month</label><select class="input" id="f-month"></select></div>
+      <div class="field"><label for="f-year">Maturity Year</label><select class="input" id="f-year"></select></div>
+      <div class="field"><label for="f-entity">Entity Name</label><select class="input" id="f-entity"></select></div>
+      <div class="field"><label for="f-instrument">Instrument</label><select class="input" id="f-instrument"></select></div>
+      <div class="actions">
+        <button type="submit" class="btn primary" id="searchBtn">Search</button>
+        <button type="button" class="btn" id="resetBtn">Reset</button>
+      </div>
+    </form>
+
+    <div class="chips" id="chips" hidden></div>
+
+    <div class="tablewrap list">
+      <table>
+        <thead><tr><th>ID</th><th>Asset Type</th><th>TAG</th><th>Instrument</th><th>Entity Name</th><th>Investment By</th><th>Maturity</th><th>Options</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <ul class="cardlist" id="cardList"></ul>
+      <div class="empty" id="emptyState" hidden></div>
+    </div>
+    <div class="pager" id="pager"></div>
+  </section>
+
+  <!-- UTILITY -->
+  <section id="v-utility" hidden style="flex-direction:column;gap:20px">
+    <div class="page-head"><div><h1>Utility</h1><p>Each dropdown in the Add asset form and the search filters reads from these lists. Pick one to add, rename or delete values.</p></div></div>
+    <div class="cards" id="listCards"></div>
+  </section>
+
+  <!-- MIGRATION -->
+  <section id="v-migration" hidden style="flex-direction:column;gap:20px">
+    <div class="page-head"><div><h1>Migration</h1><p>Create many asset records at once from an Excel sheet.</p></div></div>
+    <div class="panel">
+      <h2><span class="step">1</span>Download the template</h2>
+      <p>The template has the columns below, one example row, and a second sheet listing the dropdown values you already have. Highlighted columns are mandatory. Leave Maturity Date blank for assets with no maturity.</p>
+      <div class="cols" id="tplCols"></div>
+      <div><button class="btn" id="tplBtn"><svg><use href="#i-download"/></svg>Download Excel template</button> <span class="hint" id="tplNote"></span></div>
+    </div>
+    <div class="panel">
+      <h2><span class="step">2</span>Upload your filled sheet</h2>
+      <label class="drop" id="drop" for="fileIn">
+        <svg width="28" height="28"><use href="#i-upload"/></svg>
+        <span><b>Choose an .xlsx file</b> or drop it here</span>
+        <span class="hint">The first sheet is read. Row 1 must be the header row.</span>
+      </label>
+      <input type="file" id="fileIn" accept=".xlsx,.xls,.csv" hidden>
+      <label class="check"><input type="checkbox" id="autoAdd" checked> Add new dropdown values from the sheet to the Utility lists</label>
+    </div>
+    <div class="panel" id="previewPanel" hidden>
+      <h2><span class="step">3</span>Check and import</h2>
+      <div class="summary" id="impSummary"></div>
+      <div class="tablewrap"><table><thead><tr><th>Row</th><th>Check</th><th>Asset Type</th><th>Owner</th><th>Tag</th><th>Instrument</th><th>Entity</th><th>Amount</th><th>Maturity</th></tr></thead><tbody id="impRows"></tbody></table></div>
+      <div class="progress" id="impProg" hidden><i></i></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="impBtn">Import</button><button class="btn" id="impClear">Clear</button></div>
+    </div>
+    <div class="panel">
+      <h2><svg width="20" height="20"><use href="#i-download"/></svg>Export or back up</h2>
+      <p>Save every record to an Excel file in the same format as the template. You can keep it as a backup, or upload it in Migration on another device to copy your records there. Imported records get new IDs.</p>
+      <div><button class="btn" id="expBtn"><svg><use href="#i-download"/></svg>Export all records</button> <span class="hint" id="expNote"></span></div>
+    </div>
+  </section>
+</main>
+
+<div id="modalRoot"></div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(() => {
+const LISTS = [
+  {key:'assetType', label:'Asset Type', blurb:'Broad class, such as Debt or Equity'},
+  {key:'owner', label:'Owner', blurb:'Family member the investment is in the name of (Investment By)'},
+  {key:'instrument', label:'Instrument', blurb:'Product, such as Fixed Deposit or Mutual Fund'},
+  {key:'entity', label:'Entity Name', blurb:'Bank, AMC, insurer or issuer'},
+];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const PAGE = 25;
+const S = {
+  db:null, ready:false, canWrite:true,
+  assets:[], lists:{assetType:[],owner:[],instrument:[],entity:[]}, lastId:0,
+  filters:{}, quick:'all', page:1, view:'dashboard', imp:null,
+};
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n => (n === null || n === undefined || n === '') ? '—' : '₹' + Number(n).toLocaleString('en-IN', {maximumFractionDigits:2});
+const pad = n => String(n).padStart(2,'0');
+function today(){ const d = new Date(); return {y:d.getFullYear(), m:d.getMonth()+1, iso:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}; }
+function fmtDate(iso){ if(!iso) return ''; const [y,m,d] = iso.split('-'); return `${+d} ${MONTHS[+m-1]} ${y}`; }
+
+// ---------- status ----------
+function bucket(a){
+  if (a.status === 'redeemed') return 'redeemed';
+  if (!a.maturityDate) return 'none';
+  const t = today(); const ym = `${t.y}-${pad(t.m)}`;
+  const aym = a.maturityDate.slice(0,7);
+  if (aym < ym) return 'missed';
+  if (aym === ym) return 'month';
+  return 'upcoming';
+}
+function inQuick(a, q){
+  const b = bucket(a), t = today();
+  if (q === 'all') return true;
+  if (q === 'redeemed') return b === 'redeemed';
+  if (q === 'missed') return b === 'missed';
+  if (q === 'month') return b === 'month';
+  if (q === 'year') return b !== 'redeemed' && !!a.maturityDate && +a.maturityDate.slice(0,4) === t.y;
+  return true;
+}
+
+// ---------- toast ----------
+let toastT;
+function toast(msg){ const el = $('#toast'); el.textContent = msg; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(()=>el.hidden = true, 3200); }
+
+// ---------- nav ----------
+function openDrawer(open){
+  $('#drawer').classList.toggle('open', open); $('#drawerBg').hidden = !open;
+  document.documentElement.classList.toggle('locked', open);
+  $('#menuBtn').setAttribute('aria-expanded', open);
+  if (open) document.querySelector('.nav[aria-current="page"]')?.focus();
+}
+$('#menuBtn').onclick = () => openDrawer(!$('#drawer').classList.contains('open'));
+$('#drawerBg').onclick = () => openDrawer(false);
+document.querySelectorAll('.nav').forEach(b => b.onclick = () => { setView(b.dataset.view); openDrawer(false); });
+function setView(v){
+  S.view = v;
+  ['dashboard','utility','migration'].forEach(k => { const el = $('#v-'+k); el.hidden = k !== v; if (k===v) el.style.display='flex'; else el.style.display=''; });
+  document.querySelectorAll('.nav').forEach(b => { if (b.dataset.view===v) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  $('#crumb').textContent = {dashboard:'Dashboard', utility:'Utility', migration:'Migration'}[v];
+  $('#addBtn').hidden = v !== 'dashboard' || !S.canWrite;
+  try { history.replaceState(null, '', '#'+v); } catch(e){}
+  renderAll();
+}
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if ($('#modalRoot').firstChild) closeModal(); else if ($('#filterForm').classList.contains('open')) filterSheet(false); else openDrawer(false);
+});
+
+// ---------- dashboard ----------
+function optionList(values, anyLabel){ return `<option value="">${esc(anyLabel)}</option>` + values.map(v => `<option>${esc(v)}</option>`).join(''); }
+function fillFilterSelects(){
+  const keep = id => $(id).value;
+  const set = (id, html) => { const v = keep(id); $(id).innerHTML = html; $(id).value = v; if ($(id).value !== v) $(id).value = ''; };
+  set('#f-owner', optionList(S.lists.owner, 'All members'));
+  set('#f-assetType', optionList(S.lists.assetType, 'All types'));
+  set('#f-entity', optionList(S.lists.entity, 'All entities'));
+  set('#f-instrument', optionList(S.lists.instrument, 'All instruments'));
+  set('#f-month', `<option value="">Any month</option>` + MONTHS_FULL.map((m,i)=>`<option value="${i+1}">${m}</option>`).join(''));
+  const years = new Set([today().y]);
+  S.assets.forEach(a => a.maturityDate && years.add(+a.maturityDate.slice(0,4)));
+  set('#f-year', `<option value="">Any year</option>` + [...years].sort((a,b)=>a-b).map(y=>`<option>${y}</option>`).join('') + `<option value="none">No maturity</option>`);
+}
+function filtered(){
+  const f = S.filters;
+  return S.assets.filter(a => {
+    if (!inQuick(a, S.quick)) return false;
+    if (f.owner && a.owner !== f.owner) return false;
+    if (f.assetType && a.assetType !== f.assetType) return false;
+    if (f.entity && a.entity !== f.entity) return false;
+    if (f.instrument && a.instrument !== f.instrument) return false;
+    if (f.tag && !String(a.tag||'').toLowerCase().includes(f.tag.toLowerCase())) return false;
+    if (f.year === 'none' && a.maturityDate) return false;
+    if (f.year && f.year !== 'none' && (!a.maturityDate || +a.maturityDate.slice(0,4) !== +f.year)) return false;
+    if (f.month && (!a.maturityDate || +a.maturityDate.slice(5,7) !== +f.month)) return false;
+    return true;
+  }).sort((a,b) => b.id - a.id);
+}
+function renderTiles(){
+  const t = today();
+  const c = {all:0, month:0, year:0, redeemed:0, missed:0};
+  S.assets.forEach(a => { c.all++; ['month','year','redeemed','missed'].forEach(q => inQuick(a,q) && c[q]++); });
+  const show = (id, n) => $(id).textContent = S.ready ? n : '–';
+  show('#n-total', c.all); show('#n-month', c.month); show('#n-year', c.year); show('#n-red', c.redeemed); show('#n-missed', c.missed);
+  $('#n-missed').classList.toggle('hot', c.missed > 0);
+  $('#s-month').textContent = `1–${new Date(t.y, t.m, 0).getDate()} ${MONTHS_FULL[t.m-1]} ${t.y}`;
+  $('#s-year').textContent = `Jan–Dec ${t.y}, still open`;
+  document.querySelectorAll('.tile').forEach(b => b.setAttribute('aria-pressed', b.dataset.quick === S.quick));
+}
+function renderChips(){
+  const f = S.filters, parts = [];
+  const quickLbl = {month:'Maturing this month', year:'Maturing this year', redeemed:'Redeemed', missed:'Missed'};
+  if (S.quick !== 'all') parts.push(['quick', quickLbl[S.quick]]);
+  if (f.owner) parts.push(['owner', 'By ' + f.owner]);
+  if (f.assetType) parts.push(['assetType', f.assetType]);
+  if (f.tag) parts.push(['tag', 'Tag contains “' + f.tag + '”']);
+  if (f.month) parts.push(['month', MONTHS_FULL[f.month-1]]);
+  if (f.year) parts.push(['year', f.year === 'none' ? 'No maturity' : f.year]);
+  if (f.entity) parts.push(['entity', f.entity]);
+  if (f.instrument) parts.push(['instrument', f.instrument]);
+  const el = $('#chips'); el.hidden = !parts.length;
+  el.innerHTML = 'Showing: ' + parts.map(([k,l]) => `<button class="chip" data-k="${k}" aria-label="Remove filter ${esc(l)}">${esc(l)}<svg><use href="#i-x"/></svg></button>`).join('');
+  el.querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    const k = b.dataset.k;
+    if (k === 'quick') S.quick = 'all'; else { delete S.filters[k]; const inp = $('#f-'+k); if (inp) inp.value = ''; }
+    S.page = 1; renderDashboard();
+  });
+}
+function matCell(a){
+  const b = bucket(a);
+  const date = a.maturityDate ? `<span class="mono">${fmtDate(a.maturityDate)}</span>` : `<span>No maturity</span>`;
+  const pill = {redeemed:['p-red','Redeemed'], missed:['p-missed','Missed'], month:['p-month','This month'], upcoming:['p-up','Upcoming'], none:['p-none','Open']}[b];
+  return `<div class="mat">${date}<span class="pill ${pill[0]}">${pill[1]}</span></div>`;
+}
+function renderDashboard(){
+  renderTiles(); fillFilterSelects(); renderChips();
+  const list = filtered();
+  const pages = Math.max(1, Math.ceil(list.length / PAGE));
+  if (S.page > pages) S.page = pages;
+  const slice = list.slice((S.page-1)*PAGE, S.page*PAGE);
+  $('#rows').innerHTML = slice.map(a => `<tr>
+    <td class="id">${a.id}</td><td>${esc(a.assetType)}</td><td class="tag">${esc(a.tag)}</td><td>${esc(a.instrument)}</td>
+    <td>${esc(a.entity)}</td><td>${esc(a.owner)}</td><td>${matCell(a)}</td>
+    <td><div class="opts">
+      <button class="iconbtn" data-act="view" data-id="${a.id}" aria-label="View asset ${a.id}" title="View"><svg><use href="#i-eye"/></svg></button>
+      ${S.canWrite ? `<button class="iconbtn" data-act="edit" data-id="${a.id}" aria-label="Edit asset ${a.id}" title="Edit"><svg><use href="#i-pencil"/></svg></button>
+      <button class="iconbtn del" data-act="del" data-id="${a.id}" aria-label="Delete asset ${a.id}" title="Delete"><svg><use href="#i-trash"/></svg></button>` : ''}
+    </div></td></tr>`).join('');
+  $('#cardList').innerHTML = slice.map(a => {
+    const b = bucket(a);
+    const pill = {redeemed:['p-red','Redeemed'], missed:['p-missed','Missed'], month:['p-month','This month'], upcoming:['p-up','Upcoming'], none:['p-none','Open']}[b];
+    return `<li class="acard" data-id="${a.id}">
+      <div class="top"><span class="id">#${a.id}</span><span class="tg">${esc(a.tag)}</span><span class="pill ${pill[0]}">${pill[1]}</span></div>
+      <div class="meta"><b>${esc(a.instrument)}</b> · ${esc(a.entity)}</div>
+      <div class="meta">${esc(a.assetType)} · ${esc(a.owner)} · <span class="mono">${money(a.amount)}</span></div>
+      <div class="bot"><span class="when">${a.maturityDate ? 'Matures ' + fmtDate(a.maturityDate) : 'No maturity'}</span>
+        <span class="opts">
+        <button class="iconbtn" data-act="view" data-id="${a.id}" aria-label="View asset ${a.id}"><svg><use href="#i-eye"/></svg></button>
+        ${S.canWrite ? `<button class="iconbtn" data-act="edit" data-id="${a.id}" aria-label="Edit asset ${a.id}"><svg><use href="#i-pencil"/></svg></button>
+        <button class="iconbtn del" data-act="del" data-id="${a.id}" aria-label="Delete asset ${a.id}"><svg><use href="#i-trash"/></svg></button>` : ''}
+        </span></div></li>`;
+  }).join('');
+  const nf = Object.keys(S.filters).length + (S.quick !== 'all' ? 1 : 0);
+  $('#fCount').hidden = !nf; $('#fCount').textContent = nf;
+  $('#mCount').textContent = S.ready ? `${list.length} record${list.length===1?'':'s'}` : '';
+  const empty = $('#emptyState');
+  empty.hidden = slice.length > 0;
+  if (!S.ready) empty.innerHTML = `<b>Loading your assets…</b>`;
+  else if (!S.assets.length) empty.innerHTML = `<b>No assets recorded yet</b>Use <strong>Add asset</strong> at the top right to record the first one, or import many at once from <button class="linkbtn" data-go="migration">Migration</button>.`;
+  else empty.innerHTML = `<b>No assets match these filters</b><button class="linkbtn" id="clearAll">Clear all filters</button>`;
+  empty.querySelector('[data-go]')?.addEventListener('click', () => setView('migration'));
+  empty.querySelector('#clearAll')?.addEventListener('click', resetFilters);
+  const from = list.length ? (S.page-1)*PAGE + 1 : 0, to = Math.min(S.page*PAGE, list.length);
+  $('#pager').innerHTML = list.length ? `<span>Showing <b class="mono">${from}–${to}</b> of <b class="mono">${list.length}</b></span>
+    <span class="pg"><button class="btn small" id="pgPrev" ${S.page<=1?'disabled':''}>Previous</button>
+    <span class="mono">Page ${S.page} of ${pages}</span>
+    <button class="btn small" id="pgNext" ${S.page>=pages?'disabled':''}>Next</button></span>` : '';
+  $('#pgPrev')?.addEventListener('click', () => { S.page--; renderDashboard(); });
+  $('#pgNext')?.addEventListener('click', () => { S.page++; renderDashboard(); });
+}
+function onListClick(e){
+  const card = e.target.closest('.acard');
+  const b = e.target.closest('button[data-act]') || (card && {dataset:{act:'view', id:card.dataset.id}});
+  if (!b) return;
+  const a = S.assets.find(x => x.id === +b.dataset.id); if (!a) return;
+  if (b.dataset.act === 'view') openView(a);
+  if (b.dataset.act === 'edit') openAssetForm(a);
+  if (b.dataset.act === 'del') openDelete(a);
+}
+$('#rows').addEventListener('click', onListClick);
+$('#cardList').addEventListener('click', onListClick);
+document.querySelectorAll('.tile').forEach(b => b.onclick = () => { S.quick = b.dataset.quick === S.quick ? 'all' : b.dataset.quick; S.page = 1; renderDashboard(); });
+const mobile = () => matchMedia('(max-width:700px)').matches;
+function filterSheet(open){
+  $('#filterForm').classList.toggle('open', open); $('#fBg').classList.toggle('show', open);
+  $('#fBtn').setAttribute('aria-expanded', open);
+  document.documentElement.classList.toggle('locked', open || !!$('#modalRoot').firstChild);
+  if (open) setTimeout(() => $('#f-owner').focus({preventScroll:true}), 350);
+}
+$('#fBtn').onclick = () => filterSheet(true);
+$('#fClose').onclick = () => filterSheet(false);
+$('#fBg').onclick = () => filterSheet(false);
+swipeToClose($('#filterForm'), $('#filterForm .fhead'), () => filterSheet(false));
+$('#filterForm').onsubmit = e => {
+  e.preventDefault();
+  const f = {};
+  ['owner','assetType','tag','month','year','entity','instrument'].forEach(k => { const v = $('#f-'+k).value.trim(); if (v) f[k] = v; });
+  S.filters = f; S.page = 1; renderDashboard();
+  if (mobile()) { filterSheet(false); window.scrollTo({top:0, behavior:'smooth'}); }
+};
+function resetFilters(){ $('#filterForm').reset(); S.filters = {}; S.quick = 'all'; S.page = 1; renderDashboard(); if (mobile()) filterSheet(false); }
+$('#resetBtn').onclick = resetFilters;
+
+// ---------- modals ----------
+let lastFocus = null;
+function swipeToClose(sheet, handle, onClose){
+  let y0 = null, dy = 0;
+  handle.addEventListener('touchstart', e => { if (!mobile() || e.target.closest('button,input,select')) return; y0 = e.touches[0].clientY; dy = 0; sheet.style.transition = 'none'; }, {passive:true});
+  handle.addEventListener('touchmove', e => { if (y0 === null) return; dy = Math.max(0, e.touches[0].clientY - y0); sheet.style.transform = `translateY(${dy}px)`; }, {passive:true});
+  handle.addEventListener('touchend', () => {
+    if (y0 === null) return; y0 = null; sheet.style.transition = ''; sheet.style.transform = '';
+    if (dy > 90) onClose();
+  });
+}
+function openModal(html, cls=''){
+  lastFocus = document.activeElement;
+  $('#modalRoot').innerHTML = `<div class="overlay"><div class="modal ${cls}" role="dialog" aria-modal="true"><span class="grab" aria-hidden="true"></span>${html}</div></div>`;
+  document.documentElement.classList.add('locked');
+  const ov = $('#modalRoot .overlay');
+  const m = ov.querySelector('.modal'), hd = m.querySelector('header');
+  if (hd) swipeToClose(m, hd, closeModal);
+  m.addEventListener('animationend', () => m.classList.add('settled'), {once:true});
+  ov.addEventListener('mousedown', e => { if (e.target === ov) closeModal(); });
+  ov.querySelectorAll('[data-close]').forEach(b => b.onclick = closeModal);
+  if (!mobile()) setTimeout(() => ov.querySelector('input:not([disabled]),select,button.primary,button')?.focus(), 0);
+  return ov;
+}
+function closeModal(){
+  const ov = $('#modalRoot .overlay'); if (!ov || ov.classList.contains('closing')) return;
+  const done = () => { if (ov.parentNode) $('#modalRoot').innerHTML = ''; document.documentElement.classList.toggle('locked', $('#filterForm').classList.contains('open')); lastFocus?.focus?.({preventScroll:true}); };
+  if (matchMedia('(prefers-reduced-motion:reduce)').matches) return done();
+  ov.classList.add('closing'); setTimeout(done, mobile() ? 250 : 190);
+}
+const closeBtn = `<button class="iconbtn" data-close aria-label="Close"><svg><use href="#i-x"/></svg></button>`;
+
+function nextId(){ return Math.max(S.lastId || 0, ...S.assets.map(a => a.id), 0) + 1; }
+
+function selectHtml(id, key, current){
+  const vals = [...S.lists[key]];
+  if (current && !vals.includes(current)) vals.unshift(current);
+  const none = !vals.length;
+  return `<select class="input" id="${id}" ${none?'disabled':''}>${none ? '<option value="">No values yet</option>' : '<option value="">Select…</option>' + vals.map(v=>`<option ${v===current?'selected':''}>${esc(v)}</option>`).join('')}</select>
+    ${none ? `<span class="hint">Add values in <button type="button" class="linkbtn" data-go="utility">Utility</button>.</span>` : ''}`;
+}
+
+function openAssetForm(a){
+  const editing = !!a;
+  const id = editing ? a.id : nextId();
+  a = a || {};
+  const mat = editing ? !!a.maturityDate : true;
+  const ov = openModal(`
+    <header><h3>${editing ? 'Edit asset' : 'New asset'}</h3>${closeBtn}</header>
+    <form class="body" id="assetForm" novalidate>
+      <div class="idlabel"><span>Unique ID</span><b>#${id}</b><span style="margin-left:auto;text-transform:none;letter-spacing:0;font-weight:400">Assigned automatically</span></div>
+      <div class="formgrid">
+        <div class="field"><label for="a-assetType">Asset Type <span class="req">*</span></label>${selectHtml('a-assetType','assetType',a.assetType)}<span class="err" data-err="assetType"></span></div>
+        <div class="field"><label for="a-owner">Owner <span class="req">*</span></label>${selectHtml('a-owner','owner',a.owner)}<span class="err" data-err="owner"></span></div>
+        <div class="field"><label for="a-tag">Unique Tag <span class="req">*</span></label><input class="input mono" id="a-tag" value="${esc(a.tag)}" maxlength="40" autocomplete="off" placeholder="e.g. FD2024SBI01"><span class="err" data-err="tag"></span></div>
+        <div class="field"><label for="a-instrument">Instrument <span class="req">*</span></label>${selectHtml('a-instrument','instrument',a.instrument)}<span class="err" data-err="instrument"></span></div>
+        <div class="field"><label for="a-entity">Entity Name <span class="req">*</span></label>${selectHtml('a-entity','entity',a.entity)}<span class="err" data-err="entity"></span></div>
+        <div class="field"><label for="a-amount">Amount (₹) <span class="req">*</span></label><input class="input mono" id="a-amount" type="number" min="0" step="any" inputmode="decimal" value="${a.amount ?? ''}"><span class="err" data-err="amount"></span></div>
+        <div class="field"><label for="a-current">Current Value (₹)</label><input class="input mono" id="a-current" type="number" min="0" step="any" inputmode="decimal" value="${a.currentValue ?? ''}" placeholder="Optional"><span class="err" data-err="currentValue"></span></div>
+        <div class="field"><span class="lab">&nbsp;</span><label class="check" for="a-matOn" style="height:40px;color:var(--fg);font-size:15px"><input type="checkbox" id="a-matOn" ${mat?'checked':''}> Maturity applicable</label></div>
+        <div class="field"><label for="a-mat">Maturity Date <span class="req" id="matReq">*</span></label><input class="input mono" id="a-mat" type="date" value="${esc(a.maturityDate||'')}"><span class="err" data-err="maturityDate"></span></div>
+        ${editing ? `<div class="field"><label for="a-status">Status</label><select class="input" id="a-status"><option value="active" ${a.status!=='redeemed'?'selected':''}>Active</option><option value="redeemed" ${a.status==='redeemed'?'selected':''}>Redeemed and closed</option></select></div>
+        <div class="field" id="redWrap"><label for="a-redOn">Redeemed On</label><input class="input mono" id="a-redOn" type="date" value="${esc(a.redeemedOn||'')}"><span class="err" data-err="redeemedOn"></span></div>` : ''}
+      </div>
+      <span class="hint">Fields marked * are required. Without maturity, the asset is saved as “No maturity”.</span>
+    </form>
+    <footer><button class="btn" data-close>Cancel</button><button class="btn primary" id="saveAsset">Save</button></footer>`);
+  ov.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { closeModal(); setView(b.dataset.go); });
+  const syncMat = () => { const on = $('#a-matOn').checked; $('#a-mat').disabled = !on; $('#matReq').hidden = !on; if (!on) $('#a-mat').value = ''; };
+  $('#a-matOn').onchange = syncMat; syncMat();
+  const syncRed = () => { if (!editing) return; const r = $('#a-status').value === 'redeemed'; $('#redWrap').hidden = !r; if (r && !$('#a-redOn').value) $('#a-redOn').value = today().iso; };
+  if (editing) { $('#a-status').onchange = syncRed; syncRed(); }
+  $('#assetForm').onsubmit = e => { e.preventDefault(); save(); };
+  $('#saveAsset').onclick = save;
+  async function save(){
+    const rec = {
+      assetType: $('#a-assetType').value, owner: $('#a-owner').value, tag: $('#a-tag').value.trim(),
+      instrument: $('#a-instrument').value, entity: $('#a-entity').value,
+      amount: $('#a-amount').value, currentValue: $('#a-current').value,
+      maturityDate: $('#a-matOn').checked ? $('#a-mat').value : null,
+    };
+    const errs = validate(rec, editing ? id : null, $('#a-matOn').checked);
+    ov.querySelectorAll('[data-err]').forEach(el => el.textContent = errs[el.dataset.err] || '');
+    ov.querySelectorAll('.input').forEach(el => el.classList.remove('invalid'));
+    Object.keys(errs).forEach(k => ov.querySelector('#a-' + ({currentValue:'current', maturityDate:'mat'}[k]||k))?.classList.add('invalid'));
+    if (Object.keys(errs).length) return;
+    const doc = {
+      id, assetType: rec.assetType, owner: rec.owner, tag: rec.tag, instrument: rec.instrument, entity: rec.entity,
+      amount: +rec.amount, currentValue: rec.currentValue === '' ? null : +rec.currentValue,
+      maturityDate: rec.maturityDate || null,
+      status: editing ? $('#a-status').value : 'active',
+      redeemedOn: editing && $('#a-status').value === 'redeemed' ? ($('#a-redOn').value || today().iso) : null,
+      createdAt: a.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString(),
+    };
+    const btn = $('#saveAsset'); btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      await S.db.doc('assets/' + id).set(doc);
+      if (!editing) await S.db.doc('config/counter').set({lastId: Math.max(id, S.lastId||0)});
+      closeModal(); toast(editing ? `Asset #${id} updated` : `Asset #${id} saved`);
+    } catch(err){ btn.disabled = false; btn.textContent = 'Save'; toast(saveErr(err)); }
+  }
+}
+function saveErr(err){
+  if (err?.code === 'quota_exceeded') return 'Storage is full. Delete some records and try again.';
+  if (err?.code === 'invalid_argument') return 'You don’t have permission to change records here.';
+  return 'Couldn’t save. Check your connection and try again.';
+}
+function validate(r, selfId, matOn){
+  const e = {};
+  ['assetType','owner','instrument','entity'].forEach(k => { if (!r[k]) e[k] = 'Choose a value.'; });
+  if (!r.tag) e.tag = 'Enter a tag.';
+  else if (!/^[A-Za-z0-9][A-Za-z0-9\-\/_ ]*$/.test(r.tag)) e.tag = 'Use letters and numbers (- / _ allowed).';
+  else { const dup = S.assets.find(x => x.id !== selfId && String(x.tag).toLowerCase() === r.tag.toLowerCase()); if (dup) e.tag = `Already used by asset #${dup.id}.`; }
+  if (r.amount === '' || r.amount === null || isNaN(+r.amount)) e.amount = 'Enter the amount invested.';
+  else if (+r.amount < 0) e.amount = 'Amount can’t be negative.';
+  if (r.currentValue !== '' && r.currentValue !== null && (isNaN(+r.currentValue) || +r.currentValue < 0)) e.currentValue = 'Enter a positive number or leave blank.';
+  if (matOn && !r.maturityDate) e.maturityDate = 'Pick the maturity date, or untick Maturity applicable.';
+  return e;
+}
+
+function openView(a){
+  const row = (k, v) => `<dt>${k}</dt><dd>${v}</dd>`;
+  const b = bucket(a);
+  openModal(`<header><h3>Asset #${a.id}</h3>${closeBtn}</header>
+    <div class="body"><dl class="view">
+      ${row('Unique ID', `<span class="mono">#${a.id}</span>`)}
+      ${row('Asset Type', esc(a.assetType))}${row('Owner', esc(a.owner))}
+      ${row('Unique Tag', `<span class="mono">${esc(a.tag)}</span>`)}
+      ${row('Instrument', esc(a.instrument))}${row('Entity Name', esc(a.entity))}
+      ${row('Amount', `<span class="mono">${money(a.amount)}</span>`)}
+      ${row('Current Value', `<span class="mono">${money(a.currentValue)}</span>`)}
+      ${row('Maturity Date', a.maturityDate ? `<span class="mono">${fmtDate(a.maturityDate)}</span>` : 'No maturity')}
+      ${row('Status', matCell(a).replace(/<span class="mono">.*?<\/span>|<span>No maturity<\/span>/,''))}
+      ${a.status==='redeemed' ? row('Redeemed On', `<span class="mono">${fmtDate(a.redeemedOn)||'—'}</span>`) : ''}
+      ${a.createdAt ? row('Added', `<span class="mono">${fmtDate(a.createdAt.slice(0,10))}</span>`) : ''}
+    </dl></div>
+    <footer>${S.canWrite ? `<button class="btn" id="vEdit"><svg><use href="#i-pencil"/></svg>Edit</button>` : ''}<button class="btn primary" data-close>Close</button></footer>`, 'narrow');
+  $('#vEdit')?.addEventListener('click', () => { closeModal(); openAssetForm(a); });
+}
+function openDelete(a){
+  openModal(`<header><h3>Delete asset #${a.id}?</h3>${closeBtn}</header>
+    <div class="body"><p style="margin:0">This permanently removes <b class="mono">${esc(a.tag)}</b> (${esc(a.instrument)}, ${esc(a.entity)}, ${money(a.amount)}). It can’t be undone.</p>
+    <p class="hint" style="margin:0">If the investment was paid out, edit it and set the status to Redeemed instead, so it stays in your history.</p></div>
+    <footer><button class="btn" data-close>Cancel</button><button class="btn danger" id="doDel"><svg><use href="#i-trash"/></svg>Delete</button></footer>`, 'narrow');
+  $('#doDel').onclick = async () => {
+    $('#doDel').disabled = true;
+    try { await S.db.doc('assets/' + a.id).delete(); closeModal(); toast(`Asset #${a.id} deleted`); }
+    catch(err){ $('#doDel').disabled = false; toast(saveErr(err)); }
+  };
+}
+$('#addBtn').onclick = () => S.db ? openAssetForm(null) : toast('Saving isn’t available in this view.');
+
+// ---------- utility ----------
+function usage(key, v){ return S.assets.filter(a => a[key] === v).length; }
+function renderUtility(){
+  $('#listCards').innerHTML = LISTS.map(l => {
+    const vals = S.lists[l.key];
+    return `<button class="card" data-key="${l.key}"><h3>${l.label}<span class="mono">${vals.length}</span></h3>
+      <p>${vals.length ? esc(vals.join(', ')) : 'No values yet'}</p><span class="hint">${l.blurb}</span></button>`;
+  }).join('');
+  $('#listCards').querySelectorAll('.card').forEach(c => c.onclick = () => openListEditor(c.dataset.key));
+}
+async function saveLists(next){
+  await S.db.doc('config/lists').set({...S.lists, ...next});
+  S.lists = {...S.lists, ...next};
+}
+function openListEditor(key){
+  const meta = LISTS.find(l => l.key === key);
+  let editing = null, confirming = null;
+  const ov = openModal(`<header><h3>${meta.label} values</h3>${closeBtn}</header>
+    <div class="body"><span class="hint">${meta.blurb}. Renaming a value also updates the assets that use it. Deleting a value removes it from the dropdown only; existing assets keep it.</span>
+      <div class="vlist" id="vlist"></div>
+      ${S.canWrite ? `<form class="addrow" id="addVal"><input class="input" id="newVal" placeholder="New ${meta.label.toLowerCase()} value" maxlength="60" autocomplete="off"><button class="btn primary" type="submit"><svg><use href="#i-plus"/></svg>Add</button></form><span class="err" id="valErr"></span>` : ''}
+    </div><footer><button class="btn" data-close>Done</button></footer>`, 'narrow');
+  function draw(){
+    const vals = S.lists[key];
+    $('#vlist').innerHTML = vals.length ? vals.map((v,i) => {
+      const n = usage(key, v);
+      if (editing === i) return `<div class="vrow"><input class="input" id="editIn" value="${esc(v)}" maxlength="60"><button class="iconbtn" data-a="ok" aria-label="Save"><svg><use href="#i-check"/></svg></button><button class="iconbtn" data-a="cancel" aria-label="Cancel"><svg><use href="#i-x"/></svg></button></div>`;
+      if (confirming === i) return `<div class="vrow"><span class="name">Delete <b>${esc(v)}</b>?</span><button class="btn small danger" data-a="yes" data-i="${i}">Delete</button><button class="btn small" data-a="cancel">Keep</button></div>`;
+      return `<div class="vrow"><span class="name">${esc(v)}</span><span class="use">${n} asset${n===1?'':'s'}</span>
+        ${S.canWrite ? `<button class="iconbtn" data-a="edit" data-i="${i}" aria-label="Rename ${esc(v)}" title="Rename"><svg><use href="#i-pencil"/></svg></button>
+        <button class="iconbtn" data-a="del" data-i="${i}" aria-label="Delete ${esc(v)}" title="Delete"><svg><use href="#i-trash"/></svg></button>` : ''}</div>`;
+    }).join('') : `<div class="vrow"><span class="name hint">No values yet. Add the first one below.</span></div>`;
+    $('#editIn')?.focus();
+    $('#editIn')?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); rename(); } });
+  }
+  async function rename(){
+    const vals = [...S.lists[key]], old = vals[editing], nv = $('#editIn').value.trim();
+    if (!nv) return;
+    if (nv !== old && vals.some(x => x.toLowerCase() === nv.toLowerCase() && x !== old)) { toast(`“${nv}” is already in the list.`); return; }
+    vals[editing] = nv; editing = null;
+    try {
+      await saveLists({[key]: vals});
+      const affected = S.assets.filter(a => a[key] === old);
+      for (const a of affected) await S.db.doc('assets/' + a.id).update({[key]: nv});
+      toast(affected.length ? `Renamed and updated ${affected.length} asset${affected.length===1?'':'s'}` : 'Renamed');
+    } catch(err){ toast(saveErr(err)); }
+    draw(); renderAll();
+  }
+  $('#vlist').addEventListener('click', async e => {
+    const b = e.target.closest('[data-a]'); if (!b) return;
+    const a = b.dataset.a, i = +b.dataset.i;
+    if (a === 'edit') { editing = i; confirming = null; }
+    if (a === 'del') { confirming = i; editing = null; }
+    if (a === 'cancel') { editing = confirming = null; }
+    if (a === 'ok') return rename();
+    if (a === 'yes') {
+      const vals = S.lists[key].filter((_, j) => j !== i); confirming = null;
+      try { await saveLists({[key]: vals}); toast('Value deleted'); } catch(err){ toast(saveErr(err)); }
+    }
+    draw();
+  });
+  $('#addVal')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const v = $('#newVal').value.trim(); $('#valErr').textContent = '';
+    if (!v) return;
+    if (S.lists[key].some(x => x.toLowerCase() === v.toLowerCase())) { $('#valErr').textContent = `“${v}” is already in the list.`; return; }
+    try { await saveLists({[key]: [...S.lists[key], v]}); $('#newVal').value = ''; draw(); renderAll(); $('#newVal').focus(); }
+    catch(err){ $('#valErr').textContent = saveErr(err); }
+  });
+  draw();
+}
+
+// ---------- migration ----------
+const COLS = [
+  {h:'Asset Type', k:'assetType', req:true}, {h:'Owner', k:'owner', req:true}, {h:'Unique Tag', k:'tag', req:true},
+  {h:'Instrument', k:'instrument', req:true}, {h:'Entity Name', k:'entity', req:true}, {h:'Amount', k:'amount', req:true},
+  {h:'Current Value', k:'currentValue'}, {h:'Maturity Date', k:'maturityDate'}, {h:'Status', k:'status'}, {h:'Redeemed On', k:'redeemedOn'},
+];
+$('#tplCols').innerHTML = COLS.map(c => `<code class="${c.req?'req':''}">${c.h}${c.req?' *':''}</code>`).join('');
+const norm = s => String(s||'').toLowerCase().replace(/\*/g,'').replace(/\(.*?\)/g,'').replace(/[^a-z]/g,'');
+const HEAD_ALIASES = {assettype:'assetType', type:'assetType', owner:'owner', investmentby:'owner', uniquetag:'tag', tag:'tag',
+  instrument:'instrument', entityname:'entity', entity:'entity', amount:'amount', currentvalue:'currentValue',
+  maturitydate:'maturityDate', maturity:'maturityDate', status:'status', redeemedon:'redeemedOn', redeemeddate:'redeemedOn'};
+
+$('#tplBtn').onclick = async () => {
+  if (typeof XLSX === 'undefined') { toast('The Excel library didn’t load. Reload the page and try again.'); return; }
+  let dl = null; try { dl = await window.claude?.use?.('downloads'); } catch(e){}
+  if (!dl) { $('#tplNote').textContent = 'Downloads aren’t available in this view. Create a sheet with the columns above instead.'; return; }
+  const wb = XLSX.utils.book_new();
+  const ex = (k, fb) => S.lists[k][0] || fb;
+  const ws = XLSX.utils.aoa_to_sheet([
+    COLS.map(c => c.h + (c.req ? ' *' : '')),
+    [ex('assetType','Debt'), ex('owner','Name'), 'EXAMPLE001', ex('instrument','Fixed Deposit'), ex('entity','Bank name'), 100000, 104500, '15-09-2027', 'Active', ''],
+  ]);
+  ws['!cols'] = COLS.map(c => ({wch: Math.max(14, c.h.length + 4)}));
+  XLSX.utils.book_append_sheet(wb, ws, 'Assets');
+  const max = Math.max(1, ...LISTS.map(l => S.lists[l.key].length));
+  const lists = [LISTS.map(l => l.label)];
+  for (let i = 0; i < max; i++) lists.push(LISTS.map(l => S.lists[l.key][i] || ''));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(lists), 'Dropdown values');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+    ['How to fill this sheet'], ['Delete the EXAMPLE001 row before uploading.'],
+    ['Columns marked * are mandatory.'], ['Maturity Date: DD-MM-YYYY (e.g. 15-09-2027) or an Excel date. Leave blank for no maturity.'],
+    ['Status: Active or Redeemed. Blank means Active.'], ['Unique Tag must be different on every row and from tags already in the app.'],
+    ['Values not in the Dropdown values sheet can be added automatically during import.'],
+  ]), 'Instructions');
+  const buf = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+  try { await dl.save({filename:'Calypso-Asset-import-template.xlsx', data: new Uint8Array(buf)}); $('#tplNote').textContent = ''; }
+  catch(err){ if (err?.code !== 'declined') toast('Couldn’t download the template.'); }
+};
+
+$('#expBtn').onclick = async () => {
+  if (typeof XLSX === 'undefined') { toast('The Excel library didn’t load. Reload the page and try again.'); return; }
+  if (!S.assets.length) { $('#expNote').textContent = 'There are no records to export yet.'; return; }
+  let dl = null; try { dl = await window.claude?.use?.('downloads'); } catch(e){}
+  if (!dl) { $('#expNote').textContent = 'Downloads aren’t available in this view.'; return; }
+  const d = iso => iso ? iso.split('-').reverse().join('-') : '';
+  const rows = [['ID', ...COLS.map(c => c.h + (c.req ? ' *' : ''))]];
+  [...S.assets].sort((a,b) => a.id - b.id).forEach(a => rows.push([a.id, a.assetType, a.owner, a.tag, a.instrument, a.entity, a.amount,
+    a.currentValue ?? '', d(a.maturityDate), a.status === 'redeemed' ? 'Redeemed' : 'Active', d(a.redeemedOn)]));
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = rows[0].map(h => ({wch: Math.max(10, h.length + 4)}));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Assets');
+  const buf = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+  try { await dl.save({filename:`Calypso-Asset-export-${today().iso}.xlsx`, data:new Uint8Array(buf)}); $('#expNote').textContent = `Exported ${S.assets.length} records.`; }
+  catch(err){ if (err?.code !== 'declined') toast('Couldn’t export the file.'); }
+};
+
+function parseDate(v){
+  if (v === null || v === undefined || v === '') return {val:null};
+  if (typeof v === 'number') { const p = XLSX.SSF.parse_date_code(v); if (p && p.y) return {val:`${p.y}-${pad(p.m)}-${pad(p.d)}`}; return {err:true}; }
+  const s = String(v).trim(); if (!s) return {val:null};
+  let m, y, mo, d;
+  if ((m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/))) [y,mo,d] = [+m[1],+m[2],+m[3]];
+  else if ((m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/))) [d,mo,y] = [+m[1],+m[2],+m[3]];
+  else if ((m = s.match(/^(\d{1,2})[-\s]([A-Za-z]{3,})[-\s,]*(\d{2,4})$/))) { d=+m[1]; mo = MONTHS.findIndex(x => x.toLowerCase() === m[2].slice(0,3).toLowerCase())+1; y=+m[3]; }
+  else return {err:true};
+  if (y < 100) y += 2000;
+  const dt = new Date(y, mo-1, d);
+  if (!mo || dt.getMonth() !== mo-1 || dt.getDate() !== d) return {err:true};
+  return {val:`${y}-${pad(mo)}-${pad(d)}`};
+}
+function parseNum(v){ if (v === null || v === undefined || String(v).trim() === '') return ''; const n = +String(v).replace(/[₹,\s]/g,''); return isNaN(n) ? NaN : n; }
+
+function readFile(file){
+  if (typeof XLSX === 'undefined') { toast('The Excel library didn’t load. Reload the page and try again.'); return; }
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const wb = XLSX.read(new Uint8Array(fr.result), {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''});
+      if (!rows.length) { toast('That sheet is empty.'); return; }
+      const map = rows[0].map(h => HEAD_ALIASES[norm(h)] || null);
+      const missing = COLS.filter(c => c.req && !map.includes(c.k)).map(c => c.h);
+      if (missing.length) { S.imp = {fatal:`The sheet is missing mandatory column${missing.length>1?'s':''}: ${missing.join(', ')}. Download the template to see the expected header row.`, rows:[]}; renderMigration(); return; }
+      const out = [];
+      rows.slice(1).forEach((r, i) => {
+        if (r.every(c => String(c).trim() === '')) return;
+        const o = {row: i + 2};
+        map.forEach((k, j) => { if (k) o[k] = r[j]; });
+        out.push(o);
+      });
+      S.imp = {name:file.name, raw:out, done:false};
+      renderMigration();
+    } catch(e){ toast('Couldn’t read that file. Save it as .xlsx and try again.'); }
+  };
+  fr.readAsArrayBuffer(file);
+}
+function checkImport(){
+  const auto = $('#autoAdd').checked;
+  const seen = new Map();
+  return S.imp.raw.map(o => {
+    const errs = [];
+    const r = {};
+    ['assetType','owner','instrument','entity','tag'].forEach(k => r[k] = String(o[k] ?? '').trim());
+    LISTS.forEach(l => {
+      if (!r[l.key]) errs.push(`${l.label} is blank`);
+      else {
+        const hit = S.lists[l.key].find(x => x.toLowerCase() === r[l.key].toLowerCase());
+        if (hit) r[l.key] = hit; else if (!auto) errs.push(`${l.label} “${r[l.key]}” isn’t in Utility`);
+      }
+    });
+    if (!r.tag) errs.push('Unique Tag is blank');
+    else if (!/^[A-Za-z0-9][A-Za-z0-9\-\/_ ]*$/.test(r.tag)) errs.push('Tag has characters other than letters/numbers');
+    else {
+      const dup = S.assets.find(x => String(x.tag).toLowerCase() === r.tag.toLowerCase());
+      if (dup) errs.push(`Tag already used by asset #${dup.id}`);
+      const t = r.tag.toLowerCase();
+      if (seen.has(t)) errs.push(`Tag repeats row ${seen.get(t)}`); else seen.set(t, o.row);
+    }
+    r.amount = parseNum(o.amount);
+    if (r.amount === '') errs.push('Amount is blank'); else if (isNaN(r.amount) || r.amount < 0) errs.push('Amount isn’t a number');
+    r.currentValue = parseNum(o.currentValue);
+    if (r.currentValue !== '' && (isNaN(r.currentValue) || r.currentValue < 0)) errs.push('Current Value isn’t a number');
+    const md = parseDate(o.maturityDate); if (md.err) errs.push('Maturity Date not understood'); r.maturityDate = md.val || null;
+    const st = norm(o.status);
+    r.status = (st === 'redeemed' || st === 'closed' || st === 'yes') ? 'redeemed' : 'active';
+    if (st && !['active','redeemed','closed','yes','no','open'].includes(st)) errs.push('Status should be Active or Redeemed');
+    const rd = parseDate(o.redeemedOn); if (rd.err) errs.push('Redeemed On not understood');
+    r.redeemedOn = r.status === 'redeemed' ? (rd.val || null) : null;
+    return {row:o.row, r, errs};
+  });
+}
+function renderMigration(){
+  const p = $('#previewPanel');
+  if (!S.imp) { p.hidden = true; return; }
+  p.hidden = false;
+  if (S.imp.fatal) { $('#impSummary').innerHTML = `<span class="no">${esc(S.imp.fatal)}</span>`; $('#impRows').innerHTML = ''; $('#impBtn').hidden = true; return; }
+  const checked = S.imp.checked = checkImport();
+  const ok = checked.filter(c => !c.errs.length).length, bad = checked.length - ok;
+  $('#impSummary').innerHTML = `<span>${esc(S.imp.name)}</span><span class="ok">${ok} ready</span>${bad ? `<span class="no">${bad} with problems (skipped)</span>` : ''}`;
+  $('#impRows').innerHTML = checked.map(c => `<tr><td class="mono">${c.row}</td>
+    ${c.errs.length ? `<td class="errs">${c.errs.map(esc).join('<br>')}</td>` : `<td class="okc">Ready</td>`}
+    <td>${esc(c.r.assetType)}</td><td>${esc(c.r.owner)}</td><td class="tag">${esc(c.r.tag)}</td><td>${esc(c.r.instrument)}</td><td>${esc(c.r.entity)}</td>
+    <td class="mono">${isNaN(c.r.amount)||c.r.amount===''?'—':money(c.r.amount)}</td><td class="mono">${c.r.maturityDate ? fmtDate(c.r.maturityDate) : 'No maturity'}${c.r.status==='redeemed'?' · Redeemed':''}</td></tr>`).join('');
+  $('#impBtn').hidden = !S.canWrite;
+  $('#impBtn').disabled = !ok || S.imp.busy;
+  $('#impBtn').textContent = S.imp.busy ? 'Importing…' : `Import ${ok} record${ok===1?'':'s'}`;
+}
+async function runImport(){
+  const good = S.imp.checked.filter(c => !c.errs.length);
+  if (!good.length || !S.db) return;
+  S.imp.busy = true; renderMigration();
+  const prog = $('#impProg'); prog.hidden = false; const bar = prog.firstElementChild;
+  try {
+    const add = {};
+    LISTS.forEach(l => {
+      const extra = [];
+      good.forEach(c => { const v = c.r[l.key]; if (!S.lists[l.key].some(x => x.toLowerCase() === v.toLowerCase()) && !extra.some(x => x.toLowerCase() === v.toLowerCase())) extra.push(v); });
+      if (extra.length) add[l.key] = [...S.lists[l.key], ...extra];
+    });
+    if (Object.keys(add).length) await saveLists(add);
+    let id = nextId() - 1, n = 0;
+    const now = new Date().toISOString();
+    for (const c of good) {
+      id++;
+      const doc = {id, assetType:c.r.assetType, owner:c.r.owner, tag:c.r.tag, instrument:c.r.instrument, entity:c.r.entity,
+        amount:+c.r.amount, currentValue: c.r.currentValue === '' ? null : +c.r.currentValue, maturityDate:c.r.maturityDate,
+        status:c.r.status, redeemedOn:c.r.redeemedOn, createdAt:now, updatedAt:now, source:'migration'};
+      let tries = 0;
+      for (;;) {
+        try { await S.db.doc('assets/' + id).set(doc); break; }
+        catch(err){ if ((err?.code === 'resource_exhausted' || err?.code === 'unavailable') && tries++ < 5) await new Promise(r => setTimeout(r, 800 * tries)); else throw err; }
+      }
+      n++; bar.style.width = (n / good.length * 100) + '%';
+      if (n % 20 === 0) await S.db.doc('config/counter').set({lastId:id});
+    }
+    await S.db.doc('config/counter').set({lastId:id});
+    toast(`Imported ${n} record${n===1?'':'s'}`);
+    S.imp = null; $('#fileIn').value = ''; prog.hidden = true; bar.style.width = '0';
+    setView('dashboard');
+  } catch(err){
+    toast(saveErr(err) + ' Some rows may have been imported; check the dashboard before retrying.');
+    S.imp.busy = false; renderMigration();
+  }
+}
+$('#fileIn').onchange = e => e.target.files[0] && readFile(e.target.files[0]);
+const drop = $('#drop');
+['dragenter','dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) readFile(f); });
+$('#autoAdd').onchange = () => S.imp && !S.imp.busy && renderMigration();
+$('#impBtn').onclick = runImport;
+$('#impClear').onclick = () => { S.imp = null; $('#fileIn').value = ''; renderMigration(); };
+
+// ---------- render + boot ----------
+function renderAll(){
+  if (S.view === 'dashboard') renderDashboard();
+  if (S.view === 'utility') renderUtility();
+  if (S.view === 'migration' && S.imp && !S.imp.busy) renderMigration();
+}
+function cleanList(v){ return Array.isArray(v) ? v.filter(x => typeof x === 'string' && x.trim()) : []; }
+
+async function boot(){
+  let db = null;
+  try { db = await window.claude?.use?.('db'); } catch(e){ db = null; }
+  if (!db) {
+    S.ready = true; S.canWrite = false;
+    $('#dbBanner').hidden = false;
+    $('#dbBanner').textContent = 'Your saved records can’t be reached in this view. Open Calypso Asset on claude.ai while signed in to see and change them.';
+    setView(S.view); return;
+  }
+  S.db = db;
+  try {
+    const user = await window.claude.use('user');
+    const can = await user?.can?.('data.write');
+    if (can === false) S.canWrite = false;
+  } catch(e){}
+  if (!S.canWrite) { $('#dbBanner').hidden = false; $('#dbBanner').textContent = 'You can view these records but not change them.'; }
+  db.collection('assets').limit(1000).onSnapshot(snap => {
+    S.assets = snap.docs.map(d => d.data()).filter(a => a && typeof a.id === 'number');
+    S.ready = true; renderAll();
+  }, () => { S.ready = true; renderAll(); toast('Lost connection to your records. Reload the page.'); });
+  db.doc('config/lists').onSnapshot(s => {
+    const d = s.exists ? s.data() : {};
+    S.lists = {assetType:cleanList(d.assetType), owner:cleanList(d.owner), instrument:cleanList(d.instrument), entity:cleanList(d.entity)};
+    renderAll();
+  }, () => {});
+  db.doc('config/counter').onSnapshot(s => { S.lastId = s.exists ? (+s.data().lastId || 0) : 0; }, () => {});
+  setView(S.view);
+}
+// Android back button (used by the installed app; harmless on the web)
+window.calypsoBack = () => {
+  if ($('#modalRoot').firstChild) { closeModal(); return true; }
+  if ($('#filterForm').classList.contains('open')) { filterSheet(false); return true; }
+  if ($('#drawer').classList.contains('open')) { openDrawer(false); return true; }
+  if (S.view !== 'dashboard') { setView('dashboard'); return true; }
+  return false;
+};
+const h = (location.hash || '').slice(1);
+S.view = ['dashboard','utility','migration'].includes(h) ? h : 'dashboard';
+setView(S.view);
+boot();
+})();
+</script>

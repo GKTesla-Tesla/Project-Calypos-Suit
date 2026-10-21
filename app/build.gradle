@@ -1,0 +1,47 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.calypso.asset'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.calypso.asset'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+    }
+
+    // Release signing comes from the CALYPSO_KEYSTORE_* environment variables (GitHub secrets in CI),
+    // so the key never lives in this public repo. The same key must sign every build, or Android
+    // refuses to install the update over the existing app.
+    def ksFile = System.getenv('CALYPSO_KEYSTORE_FILE')
+    signingConfigs {
+        if (ksFile) {
+            release {
+                storeFile file(ksFile)
+                storePassword System.getenv('CALYPSO_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('CALYPSO_KEY_ALIAS') ?: 'calypso'
+                keyPassword System.getenv('CALYPSO_KEYSTORE_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig ksFile ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.12.1'
+}
